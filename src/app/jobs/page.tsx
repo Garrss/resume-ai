@@ -1,6 +1,6 @@
-import Footer from "@/components/landing/Footer";
-import Jobs from "@/components/landing/Jobs";
-import Navbar from "@/components/landing/Navbar";
+import Footer from "@/components/home/Footer";
+import Jobs from "@/components/home/Jobs";
+import Navbar from "@/components/home/Navbar";
 import { Toaster } from "@/components/ui/sonner";
 import React from "react";
 

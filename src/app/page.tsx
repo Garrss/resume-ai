@@ -1,19 +1,27 @@
-import Footer from "@/components/landing/Footer";
-import Hero from "@/components/landing/Hero";
-import Navbar from "@/components/landing/Navbar";
-import UploadCV from "@/components/landing/UploadCV";
-import { Button } from "@/components/ui/button";
+import Footer from "@/components/home/Footer";
+import Hero from "@/components/home/Hero";
+import Navbar from "@/components/home/Navbar";
 import { Toaster } from "@/components/ui/sonner";
-import Image from "next/image";
 import React from "react";
 
-export default function Home() {
-   return (
+export const metadata = {
+  title: "Resume AI — Home",
+  description:
+    "Upload your resume and let AI generate tailored job suggestions and resume improvements.",
+  openGraph: {
+    title: "Resume AI — Home",
+    description: "AI-powered resume enhancement and job suggestions.",
+  },
+};
+
+export default function HomePage() {
+  return (
     <div className="h-screen min-h-screen flex flex-col bg-background">
       <Navbar />
-      <Hero />
       <Toaster />
-      <Footer />
+      <main className="flex-1 overflow-auto">
+        <Hero />
+      </main>
     </div>
   );
 }
