@@ -1,5 +1,5 @@
 {
-  "name": "dentwise",
+  "name": "resumy-ai",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,6 +10,7 @@
     "format": "biome format --write"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.33.7",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",

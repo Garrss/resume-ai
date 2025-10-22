@@ -18,10 +18,10 @@ export default function HomePage() {
   return (
     <div className="h-screen min-h-screen flex flex-col bg-background">
       <Navbar />
-      <Toaster />
       <main className="flex-1 overflow-auto">
         <Hero />
       </main>
+         <Footer />
     </div>
   );
 }
