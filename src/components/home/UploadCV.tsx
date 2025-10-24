@@ -1,5 +1,10 @@
 "use client";
-import React, { InputHTMLAttributes, useCallback, useRef, useState } from "react";
+import React, {
+  InputHTMLAttributes,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, File, Image, X, Upload } from "lucide-react";
 
@@ -49,7 +54,6 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
   }
 
   async function parsePdf() {
-
     if (!file) return;
 
     try {
@@ -66,6 +70,19 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
       }
 
       const data = await response.json();
+
+      const predict = await fetch("/api/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const predicted_data = await predict.json()
+
+      console.log(data)
+      console.log(predicted_data);
     } catch (err) {
       console.error(err);
     }

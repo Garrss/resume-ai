@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const data = await parser.getText();
     await parser.destroy();
     return NextResponse.json({
-      text: data.text,
+      profile_text: data.text,
     });
   } catch (error) {
     console.error("PDF parse error:", error);
