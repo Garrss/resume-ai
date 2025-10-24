@@ -81,11 +81,14 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
 
       const predicted_data = await predict.json()
 
-      console.log(data)
-      console.log(predicted_data);
+      return predicted_data.predicted_category
     } catch (err) {
       console.error(err);
     }
+  }
+
+  function feedbackAI(predicted_category: string) {
+    
   }
 
   function clearFile() {
