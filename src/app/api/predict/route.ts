@@ -19,9 +19,7 @@ export async function POST(request: NextRequest) {
 
        const predicted = await predict.json()
 
-        return NextResponse.json({
-          category: predicted,
-        });
+        return NextResponse.json(predicted);
     } catch (err) {
         console.error(err);
         console.error("PDF parse error:", err);
