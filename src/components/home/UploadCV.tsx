@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, File, Image, X, Upload } from "lucide-react";
+import { NextResponse } from "next/server";
 
 interface UploadCVProps {
   onJobsGenerated?: () => void;
@@ -71,24 +72,44 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
 
       const data = await response.json();
 
-      const predict = await fetch("/api/predict", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      console.log(data);
 
-      const predicted_data = await predict.json()
-
-      return predicted_data.predicted_category
+      return data;
     } catch (err) {
       console.error(err);
     }
   }
 
-  function feedbackAI(predicted_category: string) {
-    
+  async function predictRole(pdfParsed: JSON) {
+    const predict = await fetch("/api/predict", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(pdfParsed),
+    });
+
+    const predicted_data = await predict.json();
+    console.log(predicted_data);
+
+    return predicted_data.predicted_category
+  }
+
+  async function feedbackAI(predicted_category: any, cvText: JSON) {
+    const ai = await fetch("/api/feedback", {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        cvText: cvText,
+        predictedRole: predicted_category
+      })
+    });
+
+    const feedback = await ai.json()
+
+    console.log(feedback)
   }
 
   function clearFile() {
@@ -132,9 +153,11 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     }
   }
 
-  const handleGenerateJobs = () => {
+  const handleGenerateJobs = async () => {
     if (onJobsGenerated) {
-      parsePdf();
+      const parse = await parsePdf();
+      const role = await predictRole(parse);
+      feedbackAI(role, parse);
       onJobsGenerated();
     }
   };
