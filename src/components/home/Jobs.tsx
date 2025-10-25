@@ -365,46 +365,55 @@ export default function Jobs() {
                 </div>
 
                 {/* Pagination */}
-                <div className="mt-8 flex items-center justify-center gap-3">
-                    <button
-                        aria-label="Previous page"
-                        disabled={page <= 1}
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        className="px-3 py-1 rounded-md bg-muted/20 text-sm disabled:opacity-50"
-                    >
-                        Prev
-                    </button>
+<div className="mt-8 flex items-center justify-center gap-3">
+    <button
+        aria-label="Previous page"
+        disabled={page <= 1}
+        onClick={() => {
+            setPage((p) => Math.max(1, p - 1));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        className="px-3 py-1 rounded-md bg-muted/20 text-sm disabled:opacity-50 transition-all duration-200 hover:bg-muted/30"
+    >
+        Prev
+    </button>
 
-                    <nav aria-label="Pagination" className="flex items-center gap-2">
-                        {Array.from({ length: totalPages }).map((_, i) => {
-                            const p = i + 1;
-                            const active = p === page;
-                            return (
-                                <button
-                                    key={p}
-                                    onClick={() => setPage(p)}
-                                    aria-current={active ? "page" : undefined}
-                                    className={`min-w-[36px] px-2 py-1 rounded-md text-sm ${
-										active
-											? "bg-foreground text-background font-semibold"
-											: "bg-transparent text-muted-foreground hover:bg-muted/10"
-									}`}
-                                >
-                                    {p}
-                                </button>
-                            );
-                        })}
-                    </nav>
+    <nav aria-label="Pagination" className="flex items-center gap-2">
+        {Array.from({ length: totalPages }).map((_, i) => {
+            const p = i + 1;
+            const active = p === page;
+            return (
+                <button
+                    key={p}
+                    onClick={() => {
+                        setPage(p);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    aria-current={active ? "page" : undefined}
+                    className={`min-w-[36px] px-2 py-1 rounded-md text-sm transition-all duration-200 ${
+                        active
+                            ? "bg-foreground text-background font-semibold scale-105"
+                            : "bg-transparent text-muted-foreground hover:bg-muted/10 hover:scale-105"
+                    }`}
+                >
+                    {p}
+                </button>
+            );
+        })}
+    </nav>
 
-                    <button
-                        aria-label="Next page"
-                        disabled={page >= totalPages}
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        className="px-3 py-1 rounded-md bg-muted/20 text-sm disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
+    <button
+        aria-label="Next page"
+        disabled={page >= totalPages}
+        onClick={() => {
+            setPage((p) => Math.min(totalPages, p + 1));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        className="px-3 py-1 rounded-md bg-muted/20 text-sm disabled:opacity-50 transition-all duration-200 hover:bg-muted/30"
+    >
+        Next
+    </button>
+</div>
             </div>
         </section>
     );

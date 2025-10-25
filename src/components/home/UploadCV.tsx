@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, File, Image, X, Upload } from "lucide-react";
+import { FileText, File, Upload, X, Loader2, SparkleIcon, Sparkles } from "lucide-react";
 
 interface UploadCVProps {
   onJobsGenerated?: () => void;
@@ -88,10 +88,19 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     }
   }
 
-  const handleGenerateJobs = () => {
+  const handleGenerateJobs = async () => {
+    if (!file) return;
+    
+    setIsUploading(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
     if (onJobsGenerated) {
       onJobsGenerated();
     }
+    
+    setIsUploading(false);
   };
 
   // Get file icon based on file type
@@ -112,7 +121,6 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     }
   };
 
-  // Get file type label
   const getFileType = () => {
     if (!file) return '';
     
@@ -125,9 +133,18 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-4">
-      <h2 className="text-lg font-semibold mb-3 text-center">Upload your CV</h2>
+    <div className="w-full max-w-md mx-auto p-1">
+      {/* Header */}
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          Upload Your Resume
+        </h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Get personalized career insights and job recommendations
+        </p>
+      </div>
 
+      {/* Drop Zone */}
       <div
         onDragOver={onDragOver}
         onDragEnter={onDragEnter}
@@ -138,10 +155,10 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
         onKeyDown={(e) => {
           if (e.key === "Enter") inputRef.current?.click();
         }}
-        className={`w-full border-2 rounded-xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200
+        className={`w-full border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200 group
           ${dragging 
-            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-[1.02] shadow-lg" 
-            : "border-dashed border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10"
+            ? "border-gray-500 bg-gray-50 dark:bg-gray-900/20 scale-[1.02] shadow-lg" 
+            : "border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 hover:border-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-900/10"
           }
         `}
         aria-label="Drag and drop your CV here or click to select a file"
@@ -158,75 +175,108 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
           aria-hidden
         />
 
-        <div className={`p-3 rounded-full ${
+        {/* Upload Icon */}
+        <div className={`p-3 rounded-full transition-colors ${
           dragging 
-            ? "bg-blue-100 dark:bg-blue-800" 
-            : "bg-gray-100 dark:bg-neutral-800"
+            ? "bg-gray-100 dark:bg-gray-800" 
+            : "bg-gray-100 dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-800"
         }`}>
-          <Upload className={`w-6 h-6 ${
-            dragging ? "text-blue-600" : "text-gray-600 dark:text-gray-400"
+          <Upload className={`w-6 h-6 transition-colors ${
+            dragging 
+              ? "text-gray-600" 
+              : "text-gray-600 dark:text-gray-400 group-hover:text-gray-600"
           }`} />
         </div>
 
+        {/* Text Content */}
         <div className="text-center space-y-2">
-          <div className="text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             {dragging ? (
-              <span className="text-blue-600 font-semibold">Drop your file here</span>
+              <span className="text-blue-600 font-medium">Drop your resume here</span>
             ) : (
               <>
-                <strong>Drag & drop</strong> your file here, or <span className="underline">click to browse</span>
+                <span className="font-medium text-gray-900 dark:text-white">Click to upload</span> or drag and drop
               </>
             )}
           </div>
-          <div className="text-xs text-neutral-500 dark:text-neutral-400">
-            Supported formats: PDF, DOC, DOCX, TXT • Max 5MB
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            PDF, DOC, DOCX, TXT (Max. 5MB)
           </div>
         </div>
       </div>
 
+      {/* File Preview & Generate Button */}
       {file && (
-        <div className="mt-4 bg-gray-50 dark:bg-neutral-900 p-4 rounded-xl border border-gray-200 dark:border-neutral-700">
+        <div className="mt-6 bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex-shrink-0">
               {getFileIcon()}
             </div>
             
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <div className="text-sm font-medium text-neutral-700 dark:text-neutral-200 truncate">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                   {file.name}
                 </div>
-                <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full">
+                <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md font-medium">
                   {getFileType()}
                 </span>
               </div>
-              <div className="text-left text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                {(file.size / 1024).toFixed(0)} KB • {new Date().toLocaleDateString()}
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {(file.size / 1024).toFixed(0)} KB • Uploaded {new Date().toLocaleDateString()}
               </div>
             </div>
 
             <button
               type="button"
               onClick={clearFile}
-              className="flex-shrink-0 p-1 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-full transition-colors"
+              className="flex-shrink-0 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               aria-label="Remove file"
+              disabled={isUploading}
             >
-              <X className="w-4 h-4 text-red-500" />
+              <X className="w-4 h-4 text-gray-500 hover:text-red-500" />
             </button>
           </div>
 
+          {/* Generate Button */}
           <div className="mt-4">
-            <Button
-              type="button"
-              onClick={handleGenerateJobs}
-              className="w-full text-base sm:text-sm px-6 py-3 rounded-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-md hover:shadow-lg"
-              aria-label="Generate job suggestions"
-            >
-              Generate jobs ⚡
+              <Button
+                type="button"
+                onClick={handleGenerateJobs}
+                disabled={isUploading}
+                className="w-full text-sm px-6 py-3 rounded-lg font-semibold bg-gradient-to-r from-primary to-primary/70 text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:from-primary/90 hover:to-primary/80"
+                aria-label={isUploading ? "Generating job recommendations..." : "Generate job recommendations"}
+              >
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Analyzing Resume...
+                </>
+              ) : (
+                <>
+                  Generate Job <Sparkles/>
+                </>
+              )}
             </Button>
           </div>
+
+          {/* Loading State Info */}
+          {isUploading && (
+            <div className="mt-3 text-center">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Analyzing your skills and experience...
+              </p>
+            </div>
+          )}
         </div>
       )}
+
+      {/* Security Note */}
+      <div className="mt-4 text-center">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Your files are securely processed and never stored
+        </p>
+      </div>
     </div>
   );
 }

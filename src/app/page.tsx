@@ -16,12 +16,12 @@ export const metadata = {
 
 export default function HomePage() {
   return (
-    <div className="h-screen min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1">
         <Hero />
       </main>
-         <Footer />
+      <Toaster />
     </div>
   );
 }
