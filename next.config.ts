@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     //   { protocol: "https", hostname: "images.unsplash.com" },
     // ],
   },
+  serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
 };
 
 export default nextConfig;
