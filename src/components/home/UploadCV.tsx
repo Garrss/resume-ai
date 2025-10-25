@@ -6,12 +6,7 @@ import React, {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
-<<<<<<< HEAD
 import { FileText, File, Upload, X, Loader2, SparkleIcon, Sparkles } from "lucide-react";
-=======
-import { FileText, File, Image, X, Upload } from "lucide-react";
-import { NextResponse } from "next/server";
->>>>>>> 36e635193a71d5cfce9bbd60531d9555835bb2fb
 
 interface UploadCVProps {
   onJobsGenerated?: () => void;
@@ -116,6 +111,36 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     console.log(feedback)
   }
 
+  async function extractSkills(cvText: JSON) {
+    const response = await fetch("/api/extract-skills", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(cvText)
+    });    
+
+
+    const extract = await response.json()
+
+    console.log(extract)
+    return extract
+  }
+
+  async function findJobs(skills: any) {
+    const response = await fetch("/api/find-job", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ skills }),
+    });
+
+    const jobs = await response.json();
+
+    console.log(jobs);
+  }
+
   function clearFile() {
     setFile(null);
     if (inputRef.current) inputRef.current.value = "";
@@ -158,7 +183,6 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
   }
 
   const handleGenerateJobs = async () => {
-<<<<<<< HEAD
     if (!file) return;
     
     setIsUploading(true);
@@ -166,13 +190,15 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-=======
->>>>>>> 36e635193a71d5cfce9bbd60531d9555835bb2fb
     if (onJobsGenerated) {
       const parse = await parsePdf();
       const role = await predictRole(parse);
-      feedbackAI(role, parse);
-      onJobsGenerated();
+      await feedbackAI(role, parse);
+      const extracted = await extractSkills(parse);
+      await findJobs(extracted);
+
+      // onJobsGenerated();
+
     }
     
     setIsUploading(false);
@@ -234,18 +260,10 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
         onKeyDown={(e) => {
           if (e.key === "Enter") inputRef.current?.click();
         }}
-<<<<<<< HEAD
         className={`w-full border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200 group
           ${dragging 
             ? "border-gray-500 bg-gray-50 dark:bg-gray-900/20 scale-[1.02] shadow-lg" 
             : "border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 hover:border-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-900/10"
-=======
-        className={`w-full border-2 rounded-xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200
-          ${
-            dragging
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-[1.02] shadow-lg"
-              : "border-dashed border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10"
->>>>>>> 36e635193a71d5cfce9bbd60531d9555835bb2fb
           }
         `}
         aria-label="Drag and drop your CV here or click to select a file"
@@ -260,7 +278,6 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
           aria-hidden
         />
 
-<<<<<<< HEAD
         {/* Upload Icon */}
         <div className={`p-3 rounded-full transition-colors ${
           dragging 
@@ -272,39 +289,16 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
               ? "text-gray-600" 
               : "text-gray-600 dark:text-gray-400 group-hover:text-gray-600"
           }`} />
-=======
-        <div
-          className={`p-3 rounded-full ${
-            dragging
-              ? "bg-blue-100 dark:bg-blue-800"
-              : "bg-gray-100 dark:bg-neutral-800"
-          }`}>
-          <Upload
-            className={`w-6 h-6 ${
-              dragging ? "text-blue-600" : "text-gray-600 dark:text-gray-400"
-            }`}
-          />
->>>>>>> 36e635193a71d5cfce9bbd60531d9555835bb2fb
         </div>
 
         {/* Text Content */}
         <div className="text-center space-y-2">
           <div className="text-sm text-gray-600 dark:text-gray-400">
             {dragging ? (
-<<<<<<< HEAD
               <span className="text-blue-600 font-medium">Drop your resume here</span>
             ) : (
               <>
                 <span className="font-medium text-gray-900 dark:text-white">Click to upload</span> or drag and drop
-=======
-              <span className="text-blue-600 font-semibold">
-                Drop your file here
-              </span>
-            ) : (
-              <>
-                <strong>Drag & drop</strong> your file here, or{" "}
-                <span className="underline">click to browse</span>
->>>>>>> 36e635193a71d5cfce9bbd60531d9555835bb2fb
               </>
             )}
           </div>
@@ -329,37 +323,24 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
                   {getFileType()}
                 </span>
               </div>
-<<<<<<< HEAD
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 {(file.size / 1024).toFixed(0)} KB • Uploaded {new Date().toLocaleDateString()}
-=======
-              <div className="text-left text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                {(file.size / 1024).toFixed(0)} KB •{" "}
-                {new Date().toLocaleDateString()}
->>>>>>> 36e635193a71d5cfce9bbd60531d9555835bb2fb
               </div>
             </div>
 
             <button
               type="button"
               onClick={clearFile}
-<<<<<<< HEAD
               className="flex-shrink-0 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               aria-label="Remove file"
               disabled={isUploading}
             >
               <X className="w-4 h-4 text-gray-500 hover:text-red-500" />
-=======
-              className="flex-shrink-0 p-1 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-full transition-colors"
-              aria-label="Remove file">
-              <X className="w-4 h-4 text-red-500" />
->>>>>>> 36e635193a71d5cfce9bbd60531d9555835bb2fb
             </button>
           </div>
 
           {/* Generate Button */}
           <div className="mt-4">
-<<<<<<< HEAD
               <Button
                 type="button"
                 onClick={handleGenerateJobs}
@@ -377,14 +358,6 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
                   Generate Job <Sparkles/>
                 </>
               )}
-=======
-            <Button
-              type="button"
-              onClick={handleGenerateJobs}
-              className="w-full text-base sm:text-sm px-6 py-3 rounded-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-md hover:shadow-lg"
-              aria-label="Generate job suggestions">
-              Generate jobs ⚡
->>>>>>> 36e635193a71d5cfce9bbd60531d9555835bb2fb
             </Button>
           </div>
 
