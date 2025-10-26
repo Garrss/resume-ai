@@ -12,7 +12,6 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      console.log("Scroll Y:", window.scrollY); // Debug log
       // Check if page is scrolled more than 10px
       if (window.scrollY > 10) {
         setIsScrolled(true);
@@ -31,7 +30,6 @@ export default function Navbar() {
     };
   }, []);
 
-  console.log("Is scrolled:", isScrolled); 
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
