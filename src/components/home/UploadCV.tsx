@@ -6,10 +6,12 @@ import React, {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, File, Upload, X, Loader2, SparkleIcon, Sparkles } from "lucide-react";
+import { FileText, File, Upload, X, Loader2, SparkleIcon, Sparkles, FolderUpIcon } from "lucide-react";
+import { DataContext } from "../DataProvider";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface UploadCVProps {
-  onJobsGenerated?: () => void;
+  onJobsGenerated?: (jobs: any[]) => void;
 }
 
 export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
@@ -17,6 +19,7 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
   const [dragging, setDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const { setData } = React.useContext(DataContext);
 
   const handleFiles = useCallback((f: File | null) => {
     if (f) {
@@ -108,7 +111,7 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
 
     const feedback = await ai.json()
 
-    console.log(feedback)
+    return feedback.feedback;
   }
 
   async function extractSkills(cvText: JSON) {
@@ -118,7 +121,7 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(cvText)
-    });    
+    });
 
 
     const extract = await response.json()
@@ -139,6 +142,7 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     const jobs = await response.json();
 
     console.log(jobs);
+    return jobs;
   }
 
   function clearFile() {
@@ -182,27 +186,31 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     }
   }
 
-  const handleGenerateJobs = async () => {
-    if (!file) return;
-    
-    setIsUploading(true);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    if (onJobsGenerated) {
-      const parse = await parsePdf();
-      const role = await predictRole(parse);
-      await feedbackAI(role, parse);
-      const extracted = await extractSkills(parse);
-      await findJobs(extracted);
+const handleGenerateJobs = async () => {
+  if (!file) return;
 
-      // onJobsGenerated();
+  setIsUploading(true);
 
-    }
-    
-    setIsUploading(false);
-  };
+  // Simulate API call delay
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  const parse = await parsePdf();
+  const role = await predictRole(parse);
+  const feedback = await feedbackAI(role, parse);
+  const extracted = await extractSkills(parse);
+  const jobsResponse = await findJobs(extracted);
+
+  const jobsArray = jobsResponse.jobs || [];
+
+  setData({ role, feedback, jobs: jobsArray });
+
+  if (onJobsGenerated) {
+    onJobsGenerated(jobsArray);
+  }
+
+  setIsUploading(false);
+};
+
 
   // Get file icon based on file type
   const getFileIcon = () => {
@@ -238,7 +246,7 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-1">
+    <div className="w-full max-w-150 mx-auto p-1">
       {/* Header */}
       <div className="text-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -249,8 +257,16 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
         </p>
       </div>
 
-      {/* Drop Zone */}
-      <div
+     
+     <div className="w-full max-w-7xl mx-auto">
+  {/* Drop Zone - Animated */}
+  <AnimatePresence>
+    {!file && (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.2 }}
         onDragOver={onDragOver}
         onDragEnter={onDragEnter}
         onDragLeave={onDragLeave}
@@ -260,14 +276,15 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
         onKeyDown={(e) => {
           if (e.key === "Enter") inputRef.current?.click();
         }}
-        className={`w-full border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200 group
-          ${dragging 
-            ? "border-gray-500 bg-gray-50 dark:bg-gray-900/20 scale-[1.02] shadow-lg" 
+        className={`border-2 rounded-xl p-8 flex flex-col items-center justify-center gap-6 cursor-pointer transition-all duration-200 group
+          ${dragging
+            ? "border-gray-500 bg-gray-50 dark:bg-gray-900/20 scale-[1.02] shadow-lg"
             : "border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 hover:border-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-900/10"
           }
         `}
         aria-label="Drag and drop your CV here or click to select a file"
-        onClick={() => inputRef.current?.click()}>
+        onClick={() => inputRef.current?.click()}
+      >
         <input
           ref={inputRef}
           type="file"
@@ -279,21 +296,16 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
         />
 
         {/* Upload Icon */}
-        <div className={`p-3 rounded-full transition-colors ${
-          dragging 
-            ? "bg-gray-100 dark:bg-gray-800" 
-            : "bg-gray-100 dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-800"
-        }`}>
-          <Upload className={`w-6 h-6 transition-colors ${
-            dragging 
-              ? "text-gray-600" 
+        <div>
+          <FolderUpIcon className={`w-8 h-8 transition-colors ${dragging
+              ? "text-gray-600"
               : "text-gray-600 dark:text-gray-400 group-hover:text-gray-600"
-          }`} />
+            }`} />
         </div>
 
         {/* Text Content */}
-        <div className="text-center space-y-2">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-center space-y-3">
+          <div className="text-base text-gray-600 dark:text-gray-400">
             {dragging ? (
               <span className="text-blue-600 font-medium">Drop your resume here</span>
             ) : (
@@ -302,15 +314,25 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
               </>
             )}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             PDF, DOC, DOCX, TXT (Max. 5MB)
           </div>
         </div>
-      </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
 
-      {/* File Preview & Generate Button */}
-      {file && (
-        <div className="mt-6 bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+  {/* File Preview & Generate Button - Animated */}
+  <AnimatePresence>
+    {file && (
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: "auto" }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.7 }}
+        className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
+      >
+        <div className="p-6">
           <div className="flex items-center gap-4">
             <div className="flex-shrink-0">{getFileIcon()}</div>
 
@@ -323,7 +345,7 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
                   {getFileType()}
                 </span>
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-left text-xs text-gray-500 dark:text-gray-400">
                 {(file.size / 1024).toFixed(0)} KB • Uploaded {new Date().toLocaleDateString()}
               </div>
             </div>
@@ -340,14 +362,14 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
           </div>
 
           {/* Generate Button */}
-          <div className="mt-4">
-              <Button
-                type="button"
-                onClick={handleGenerateJobs}
-                disabled={isUploading}
-                className="w-full text-sm px-6 py-3 rounded-lg font-semibold bg-gradient-to-r from-primary to-primary/70 text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:from-primary/90 hover:to-primary/80"
-                aria-label={isUploading ? "Generating job recommendations..." : "Generate job recommendations"}
-              >
+          <div className="mt-6">
+            <Button
+              type="button"
+              onClick={handleGenerateJobs}
+              disabled={isUploading}
+              className="w-full max-w-80 text-sm px-6 py-3 rounded-lg font-semibold bg-gradient-to-r from-primary to-primary/70 text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:from-primary/90 hover:to-primary/80"
+              aria-label={isUploading ? "Generating job recommendations..." : "Generate job recommendations"}
+            >
               {isUploading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -355,7 +377,7 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
                 </>
               ) : (
                 <>
-                  Generate Job <Sparkles/>
+                  Generate Job<Sparkles />
                 </>
               )}
             </Button>
@@ -370,8 +392,12 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
             </div>
           )}
         </div>
-      )}
+      </motion.div>
+    )}
+  </AnimatePresence>
+      </div>
 
+      
       {/* Security Note */}
       <div className="mt-4 text-center">
         <p className="text-xs text-gray-500 dark:text-gray-400">

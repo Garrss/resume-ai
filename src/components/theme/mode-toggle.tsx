@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Moon, Sun, Monitor } from "lucide-react"
+import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
@@ -18,8 +18,6 @@ export function ModeToggle() {
   const toggleTheme = () => {
     if (theme === "light") {
       setTheme("dark")
-    } else if (theme === "dark") {
-      setTheme("system")
     } else {
       setTheme("light")
     }
@@ -37,7 +35,6 @@ export function ModeToggle() {
 
   const getNextThemeName = () => {
     if (theme === "light") return "dark"
-    if (theme === "dark") return "system"
     return "light"
   }
 
@@ -47,8 +44,6 @@ export function ModeToggle() {
         return <Sun className="h-[1.2rem] w-[1.2rem]" />
       case "dark":
         return <Moon className="h-[1.2rem] w-[1.2rem]" />
-      case "system":
-        return <Monitor className="h-[1.2rem] w-[1.2rem]" />
       default:
         return <Sun className="h-[1.2rem] w-[1.2rem]" />
     }
