@@ -123,6 +123,8 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
 
     const feedback = await ai.json()
 
+    console.log(feedback)
+
     return feedback.feedback;
   }
 
