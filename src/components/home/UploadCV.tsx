@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { FileText, File, Upload, X, Loader2, SparkleIcon, Sparkles, FolderUpIcon } from "lucide-react";
 import { DataContext } from "../DataProvider";
 import { AnimatePresence, motion } from "framer-motion";
+import { Loader } from "../ui/loader";
+
 
 interface UploadCVProps {
   onJobsGenerated?: (jobs: any[]) => void;
@@ -204,7 +206,6 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
 
   const handleGenerateJobs = async () => {
     if (!file) return;
-
     setIsUploading(true);
     
     try {
@@ -214,28 +215,25 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
       setUploadStatus("Analyzing role...");
       const role = await predictRole(parse);
 
-  const translateParse = await translateText(parse)
-  
-  const rolePredicted = await predictRole(translateParse);
-
-  setData((prev) => ({ ...prev, role: rolePredicted }));
-
-  const feedbackGet = await feedbackAI(rolePredicted, parse);
-
-  setData((prev) => ({ ...prev, feedback: feedbackGet }));
+      setUploadStatus("Translating content...");
+      const translateParse = await translateText(parse);
+      
+      setUploadStatus("Predicting role...");
+      const rolePredicted = await predictRole(translateParse);
+      setData((prev) => ({ ...prev, role: rolePredicted }));
 
       setUploadStatus("Generating feedback...");
-      const feedback = await feedbackAI(role, parse);
+      const feedbackGet = await feedbackAI(rolePredicted, parse);
+      setData((prev) => ({ ...prev, feedback: feedbackGet }));
 
       setUploadStatus("Extracting skills...");
       const extracted = await extractSkills(parse);
 
       setUploadStatus("Finding matching jobs...");
       const jobsResponse = await findJobs(extracted);
-
       const jobsArray = jobsResponse.jobs || [];
 
-      setData({ role, feedback, jobs: jobsArray });
+      setData({ role: rolePredicted, feedback: feedbackGet, jobs: jobsArray });
 
       if (onJobsGenerated) {
         onJobsGenerated(jobsArray);
@@ -406,18 +404,25 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
               type="button"
               onClick={handleGenerateJobs}
               disabled={isUploading}
-              className="w-full max-w-80 text-sm px-6 py-3 rounded-lg font-semibold bg-gradient-to-r from-primary to-primary/70 text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:from-primary/90 hover:to-primary/80"
-              aria-label={isUploading ? "Generating job recommendations..." : "Generate job recommendations"}
+              className={`w-full max-w-80 text-sm px-6 py-3 rounded-lg font-semibold 
+      bg-gradient-to-r from-primary to-primary/70 text-white transition-all duration-200 
+      shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed 
+      hover:from-primary/90 hover:to-primary/80
+      ${isUploading ? 'shimmer-button' : ''}`}
+              aria-label={isUploading ? "Processing..." : "Generate job recommendations"}
             >
               {isUploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {uploadStatus}
-                </>
+                <div className="flex items-center justify-center gap-2">
+                  <Loader 
+                    variant="text-shimmer" 
+                    text={uploadStatus || "Processing..."}
+                    className="text-sm"
+                  />
+                </div>
               ) : (
-                <>
-                  Generate Job<Sparkles />
-                </>
+                <div className="flex items-center justify-center gap-2">
+                  Generate jobs <Sparkles className="w-4 h-4" />
+                </div>
               )}
             </Button>
           </div>

@@ -76,10 +76,31 @@ Follow the JSON format strictly.
 
     let parsed;
     try {
-      parsed = JSON.parse(JSON.stringify(raw));
+      // Direct parse of the raw content, no double stringification needed
+      parsed = JSON.parse(raw);
     } catch (err) {
-      console.error("Invalid JSON from model, returning as text instead.");
-      return NextResponse.json({ feedback_raw: raw }, { status: 200 });
+      console.error("Invalid JSON from model:", err);
+      // Clean the raw content before parsing as fallback
+      try {
+        const cleanedJson = raw
+          .replace(/^```json\s*/, '')  // Remove starting ```json
+          .replace(/```$/, '')         // Remove ending ```
+          .trim();
+        parsed = JSON.parse(cleanedJson);
+      } catch (parseErr) {
+        console.error("Failed to parse cleaned JSON:", parseErr);
+        return NextResponse.json({ 
+          error: "Invalid JSON response from AI model" 
+        }, { status: 422 });
+      }
+    }
+
+    // Validate the parsed data structure
+    if (!parsed?.overall_assessment || !parsed?.detailed_improvements || 
+        !parsed?.skill_evaluation || !parsed?.summary_of_readiness) {
+      return NextResponse.json({ 
+        error: "Invalid feedback data structure" 
+      }, { status: 422 });
     }
 
     return NextResponse.json({ feedback: parsed });

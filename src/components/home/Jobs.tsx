@@ -262,11 +262,15 @@ export default function Jobs() {
               </div>
 
               {/* Apply Button */}
-              <div className="mt-4 flex justify-start">
+             <div className="mt-4 flex justify-start">
                 <a
-                  className="text-sm inline-flex items-center gap-2 px-2 py-1.5 rounded-lg bg-foreground text-background hover:opacity-90"
+                  className="text-sm inline-flex items-center gap-2 px-3 py-1.5 rounded-lg 
+                    bg-gradient-to-r from-primary to-primary/80
+                    text-white hover:from-primary/90 hover:to-primary/70
+                    transition-all duration-200 ease-in-out"
                   href={job.applyUrl}
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <ExternalLinkIcon className="w-4 h-4" />
                   Apply
@@ -295,18 +299,18 @@ export default function Jobs() {
               const p = i + 1;
               const active = p === page;
               return (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  aria-current={active ? "page" : undefined}
-                  className={`min-w-[36px] px-2 py-1 rounded-md text-sm transition-all duration-200 ${
-                    active
-                      ? "bg-foreground text-background font-semibold scale-105"
-                      : "bg-transparent text-muted-foreground hover:bg-muted/10 hover:scale-105"
-                  }`}
-                >
-                  {p}
-                </button>
+               <button
+                key={p}
+                onClick={() => setPage(p)}
+                aria-current={active ? "page" : undefined}
+                className={`min-w-[36px] px-2 py-1 rounded-md text-sm transition-all duration-200 ${
+                  active
+                    ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-semibold scale-105"
+                    : "bg-transparent text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:scale-105"
+                }`}
+              >
+                {p}
+              </button>
               );
             })}
           </nav>

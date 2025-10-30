@@ -28,24 +28,7 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row items-center gap-8">
             {/* Legal Links */}
             <div className="flex flex-col sm:flex-row items-center gap-6">
-              <Link 
-                href="/privacy" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
-              >
-                Privacy Policy
-              </Link>
-              <Link 
-                href="/terms" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
-              >
-                Terms of Service
-              </Link>
-              <Link 
-                href="/contact" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
-              >
-                Contact
-              </Link>
+              
             </div>
 
             {/* Social & External Links */}
