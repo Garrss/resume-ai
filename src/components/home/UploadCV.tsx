@@ -18,6 +18,7 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string>("");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { setData } = React.useContext(DataContext);
 
@@ -201,15 +202,18 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     }
   }
 
-const handleGenerateJobs = async () => {
-  if (!file) return;
+  const handleGenerateJobs = async () => {
+    if (!file) return;
 
-  setIsUploading(true);
+    setIsUploading(true);
+    
+    try {
+      setUploadStatus("Parsing resume...");
+      const parse = await parsePdf();
 
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+      setUploadStatus("Analyzing role...");
+      const role = await predictRole(parse);
 
-  const parse = await parsePdf();
   const translateParse = await translateText(parse)
   
   const rolePredicted = await predictRole(translateParse);
@@ -220,19 +224,31 @@ const handleGenerateJobs = async () => {
 
   setData((prev) => ({ ...prev, feedback: feedbackGet }));
 
-  const extracted = await extractSkills(translateParse);
-  const jobsResponse = await findJobs(extracted);
+      setUploadStatus("Generating feedback...");
+      const feedback = await feedbackAI(role, parse);
 
-  const jobsArray = jobsResponse.jobs || [];
+      setUploadStatus("Extracting skills...");
+      const extracted = await extractSkills(parse);
 
-  setData((prev) => ({ ...prev, jobs: jobsArray }));
+      setUploadStatus("Finding matching jobs...");
+      const jobsResponse = await findJobs(extracted);
 
-  if (onJobsGenerated) {
-    onJobsGenerated(jobsArray);
-  }
+      const jobsArray = jobsResponse.jobs || [];
 
-  setIsUploading(false);
-};
+      setData({ role, feedback, jobs: jobsArray });
+
+      if (onJobsGenerated) {
+        onJobsGenerated(jobsArray);
+      }
+
+    } catch (error) {
+      console.error(error);
+      setUploadStatus("Error occurred while processing");
+    } finally {
+      setIsUploading(false);
+      setUploadStatus("");
+    }
+  };
 
 
   // Get file icon based on file type
@@ -396,7 +412,7 @@ const handleGenerateJobs = async () => {
               {isUploading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing Resume...
+                  {uploadStatus}
                 </>
               ) : (
                 <>
@@ -405,15 +421,6 @@ const handleGenerateJobs = async () => {
               )}
             </Button>
           </div>
-
-          {/* Loading State Info */}
-          {isUploading && (
-            <div className="mt-3 text-center">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Analyzing your skills and experience...
-              </p>
-            </div>
-          )}
         </div>
       </motion.div>
     )}
