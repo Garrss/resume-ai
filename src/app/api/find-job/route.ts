@@ -16,100 +16,74 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(`Performing multiple searches for ${skills.length} skills`);
+    const searchQueries = skills.map((s) => s.trim()).filter(Boolean);
+    console.log(`🔍 Performing sequential searches for ${searchQueries.length} skills`);
 
-    // Create multiple search queries with different skill combinations
-    const searchQueries: string[] = [];
-
-    // Query 1: Top 3 skills
-    if (skills.length >= 3) {
-      searchQueries.push(skills.slice(0, 3).join(" "));
-    }
-
-    // Query 2: Skills 3-6
-    if (skills.length >= 6) {
-      searchQueries.push(skills.slice(3, 6).join(" "));
-    }
-
-    // Query 3: Just the most important skill
-    if (skills.length >= 1) {
-      searchQueries.push(skills[0]);
-    }
-
-    // If we have few skills, just use them
-    if (searchQueries.length === 0) {
-      searchQueries.push(skills.join(" "));
-    }
-
-    console.log("Search queries:", searchQueries);
-
-    // Perform all searches in parallel
-    const searchPromises = searchQueries.map((query) =>
-      fetch(
-        `https://jsearch.p.rapidapi.com/search?${new URLSearchParams({
-          query,
-          page: "1",
-          num_pages: "1",
-          date_posted: "all",
-        })}`,
-        {
-          headers: {
-            "X-RapidAPI-Key": process.env.RAPIDAPI_KEY!,
-            "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
-          },
-        }
-      )
-        .then((res) => res.json())
-        .catch((err) => {
-          console.error("Search failed for query:", query, err);
-          return { data: [] };
-        })
-    );
-
-    const results = await Promise.all(searchPromises);
-
-    // Deduplicate jobs by ID
     const jobsMap = new Map();
 
-    results.forEach((result) => {
-      result.data?.forEach((job: any) => {
-        if (!jobsMap.has(job.job_id)) {
-          jobsMap.set(job.job_id, {
-            id: job.job_id,
-            title: job.job_title,
-            company: job.employer_name,
-            companyLogo: job.employer_logo,
-            location:
-              job.job_city && job.job_country
-                ? `${job.job_city}, ${job.job_country}`
-                : job.job_country || "Remote",
-            description:
-              job.job_description?.substring(0, 300) + "..." ||
-              "No description available",
-            salary:
-              job.job_min_salary && job.job_max_salary
-                ? `${
-                    job.job_salary_currency || "$"
-                  }${job.job_min_salary.toLocaleString()} - ${job.job_max_salary.toLocaleString()}`
-                : job.job_min_salary
-                ? `${
-                    job.job_salary_currency || "$"
-                  }${job.job_min_salary.toLocaleString()}+`
-                : "Not specified",
-            employmentType: job.job_employment_type || "Not specified",
-            applyUrl: job.job_apply_link,
-            postedDate: job.job_posted_at_datetime_utc,
-            isRemote: job.job_is_remote || false,
-          });
-        }
-      });
-    });
+    // 🧠 Sequentially search for each skill
+    for (const skill of searchQueries) {
+      console.log(`🔎 Searching for jobs with skill: ${skill}`);
+
+      try {
+        const response = await fetch(
+          `https://jsearch.p.rapidapi.com/search?${new URLSearchParams({
+            query: skill,
+            page: "1",
+            num_pages: "1",
+            date_posted: "all",
+          })}`,
+          {
+            headers: {
+              "X-RapidAPI-Key": process.env.RAPIDAPI_KEY!,
+              "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        console.log(`🧾 ${result.data?.length || 0} results found for "${skill}"`);
+
+        result.data?.forEach((job: any) => {
+          if (!jobsMap.has(job.job_id)) {
+            jobsMap.set(job.job_id, {
+              id: job.job_id,
+              title: job.job_title,
+              company: job.employer_name,
+              companyLogo: job.employer_logo,
+              location:
+                job.job_city && job.job_country
+                  ? `${job.job_city}, ${job.job_country}`
+                  : job.job_country || "Remote",
+              description:
+                job.job_description?.substring(0, 300) + "..." ||
+                "No description available",
+              salary:
+                job.job_min_salary && job.job_max_salary
+                  ? `${
+                      job.job_salary_currency || "$"
+                    }${job.job_min_salary.toLocaleString()} - ${job.job_max_salary.toLocaleString()}`
+                  : job.job_min_salary
+                  ? `${
+                      job.job_salary_currency || "$"
+                    }${job.job_min_salary.toLocaleString()}+`
+                  : "Not specified",
+              employmentType: job.job_employment_type || "Not specified",
+              applyUrl: job.job_apply_link,
+              postedDate: job.job_posted_at_datetime_utc,
+              isRemote: job.job_is_remote || false,
+            });
+          }
+        });
+      } catch (err) {
+        console.error(`❌ Search failed for skill "${skill}"`, err);
+      }
+    }
 
     const jobs = Array.from(jobsMap.values()).slice(0, limit);
 
-    console.log(
-      `Found ${jobs.length} unique jobs from ${searchQueries.length} searches`
-    );
+    console.log(`✅ Found ${jobs.length} unique jobs total from ${searchQueries.length} sequential searches`);
 
     return NextResponse.json({
       jobs,

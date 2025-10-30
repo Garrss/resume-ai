@@ -11,50 +11,51 @@ export async function POST(request: Request) {
     const cvText = await request.json();
 
     const completion = await llmClient.chat.completions.create({
-     model: "deepseek/deepseek-r1-distill-llama-70b:free",
+      model: "deepseek/deepseek-r1-distill-llama-70b:free",
       messages: [
         {
           role: "system",
-          content: `You are a CV analyzer. Extract ALL relevant skills from the CV and return ONLY a JSON array of skills.
+          content: `
+You are a professional career matching expert who analyzes CVs to find the *most suitable job roles* based on actual experience and primary skill set.
 
-Format: ["skill1", "skill2", "skill3", ...]
+Guidelines:
+1. Focus on the candidate’s **core expertise and work history**, not just keyword mentions.
+2. Ignore unrelated or minor mentions (e.g., "AI" mentioned once in a project description doesn't make them an AI Engineer).
+3. Prioritize **main technical stack, daily tasks, and repeated skills**.
+4. Base your results on what the person is clearly *experienced in*, not what they briefly studied or mentioned.
+5. Return ONLY the top three most suitable job titles in JSON array format.
 
-Include:
-- Technical skills (programming languages, frameworks, tools)
-- Soft skills (leadership, communication, etc.)
-- Domain knowledge
-- Certifications
-
-Return ONLY the JSON array, nothing else.`,
+Output format (strictly):
+["Job 1", "Job 2", "Job 3"]
+`,
         },
         {
           role: "user",
-          content: `Extract all skills from this CV:\n\n${JSON.stringify(cvText)}`,
+          content: `Analyze this CV and return the top 3 most relevant job titles based on their actual work and technical background:\n\n${JSON.stringify(
+            cvText
+          )}`,
         },
       ],
     });
 
     const extractedData = completion.choices[0].message.content;
-    console.log("LLM extracted skills:", extractedData);
+    console.log("LLM extracted jobs:", extractedData);
 
-    let skills: string[] = [];
+    let jobs: string[] = [];
     try {
-      skills = JSON.parse(extractedData || "[]");
+      jobs = JSON.parse(extractedData || "[]");
 
-      // Ensure it's an array
-      if (!Array.isArray(skills)) {
-        skills = [];
-      }
+      if (!Array.isArray(jobs)) jobs = [];
     } catch (e) {
-      console.error("Failed to parse skills, using empty array");
-      skills = [];
+      console.error("Failed to parse jobs, using empty array");
+      jobs = [];
     }
 
-    return NextResponse.json(skills);
+    return NextResponse.json(jobs);
   } catch (error: any) {
     console.error("Extraction Error:", error);
     return NextResponse.json(
-      { error: error.message, skills: [] },
+      { error: error.message, jobs: [] },
       { status: 500 }
     );
   }
