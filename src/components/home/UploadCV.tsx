@@ -82,6 +82,18 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     }
   }
 
+  async function translateText(text: JSON) {
+    const res = await fetch("/api/translate", {
+      method: "POST",
+      body: JSON.stringify(text),
+    });
+
+    const data = await res.json();
+    console.log("Translation:", data);
+    return data;
+  }
+
+
   async function predictRole(pdfParsed: JSON) {
     const predict = await fetch("/api/predict", {
       method: "POST",
@@ -111,6 +123,8 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
 
     const feedback = await ai.json()
 
+    console.log(feedback)
+
     return feedback.feedback;
   }
 
@@ -129,6 +143,7 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     console.log(extract)
     return extract
   }
+  
 
   async function findJobs(skills: any) {
     const response = await fetch("/api/find-job", {
@@ -195,14 +210,22 @@ const handleGenerateJobs = async () => {
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
   const parse = await parsePdf();
-  const role = await predictRole(parse);
-  const feedback = await feedbackAI(role, parse);
-  const extracted = await extractSkills(parse);
+  const translateParse = await translateText(parse)
+  
+  const rolePredicted = await predictRole(translateParse);
+
+  setData((prev) => ({ ...prev, role: rolePredicted }));
+
+  const feedbackGet = await feedbackAI(rolePredicted, parse);
+
+  setData((prev) => ({ ...prev, feedback: feedbackGet }));
+
+  const extracted = await extractSkills(translateParse);
   const jobsResponse = await findJobs(extracted);
 
   const jobsArray = jobsResponse.jobs || [];
 
-  setData({ role, feedback, jobs: jobsArray });
+  setData((prev) => ({ ...prev, jobs: jobsArray }));
 
   if (onJobsGenerated) {
     onJobsGenerated(jobsArray);

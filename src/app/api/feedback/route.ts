@@ -17,46 +17,45 @@ export async function POST(req: Request) {
         {
           role: "system",
           content: `
-You are a professional CV reviewer and career advisor. 
-You analyze resumes for alignment with specific job roles and provide *clear, structured, and example-driven* feedback.
+You are a **professional CV reviewer and career advisor**.
+You analyze resumes for alignment with specific job roles and provide clear, structured, and example-driven feedback.
 
-Your output **must** be organized into clear bullet or numbered points.  
-Use concise language, bold key terms, and practical examples.
+Return your output **strictly as a valid JSON object** in this format:
 
-Format your response exactly like this:
+{
+  "overall_assessment": [
+    "First short assessment point",
+    "Second short assessment point"
+  ],
+  "detailed_improvements": [
+    {
+      "area": "Streamline and Structure the CV",
+      "current": "The CV spans four pages, which is lengthy for a student.",
+      "improved": "Condense to two pages, focusing on the most relevant experiences."
+    },
+    {
+      "area": "Enhance Technical Skills Presentation",
+      "current": "Technical skills section is text-heavy and includes outdated skills.",
+      "improved": "Use clear bullet points, categorize (languages, frameworks), and remove outdated skills."
+    }
+  ],
+  "skill_evaluation": {
+    "technical_skills": 8,
+    "experience_relevance": 7,
+    "presentation_clarity": 6,
+    "overall_readiness": 7
+  },
+  "summary_of_readiness": {
+    "level": "Moderate improvement needed",
+    "explanation": "The CV is a strong fit for a React Developer role but needs clarity and structure improvements."
+  }
+}
 
----
-
-## 🔍 Overall Assessment
-- (1–2 concise bullet points summarizing the CV’s general quality and relevance to the target role.)
-
-## ⚙️ Detailed, Actionable Improvements
-1. **(Area of improvement)**  
-   - **Current:** (brief excerpt or issue)  
-   - **Improved:** (specific, improved version that fits the target role)
-
-2. **(Next improvement area)**  
-   - **Current:** (description)  
-   - **Improved:** (description)
-
-3. **(Continue up to 5 total points)**
-
-## 📊 Optional Skill Evaluation
-- **Technical Skills:** X/10  
-- **Experience Relevance:** X/10  
-- **Presentation & Clarity:** X/10  
-- **Overall Readiness:** X/10
-
-## ✅ Summary of Readiness
-- (One short line stating readiness level: *Strong fit*, *Moderate improvement needed*, or *Significant improvement needed*.)
-- (Follow with a brief supporting explanation.)
-
----
-
-Keep your tone **professional, constructive, and tailored** to the provided role.
-Always include clear examples instead of vague advice.
-Avoid generic praise; focus on **measurable and realistic** ways to improve.
-    `,
+Rules:
+- Always return valid JSON only.
+- Use concise, professional wording.
+- Never include markdown, explanations, or extra text outside the JSON.
+          `,
         },
         {
           role: "user",
@@ -66,21 +65,26 @@ Analyze this CV for a **${predictedRole}** position.
 CV content:
 ${JSON.stringify(cvText)}
 
-Make sure to:
-- Use bullet or numbered points.
-- Follow the formatting above exactly.
-- Include short examples for each improvement.
-- Keep it concise but actionable.
-    `,
+Follow the JSON format strictly.
+          `,
         },
       ],
     });
 
-    return NextResponse.json({
-      feedback: response.choices[0]?.message?.content,
-    });
+    const raw = response.choices[0]?.message?.content || "";
+    console.log("AI raw output:", raw);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(JSON.stringify(raw));
+    } catch (err) {
+      console.error("Invalid JSON from model, returning as text instead.");
+      return NextResponse.json({ feedback_raw: raw }, { status: 200 });
+    }
+
+    return NextResponse.json({ feedback: parsed });
   } catch (error: any) {
-    console.error(error);
+    console.error("Error analyzing CV:", error);
     return NextResponse.json(
       {
         error: error.message,
