@@ -99,9 +99,7 @@ function PredictedRoles() {
                   Predicted Role
                 </span>
                 <h1
-                  className="mt-3 text-5xl md:text-6xl font-bold tracking-tight
-                  bg-gradient-to-r from-white-600 to-white dark:from-white dark:to-white
-                  bg-clip-text text-transparent break-words"
+                  className="mt-3 text-5xl md:text-6xl font-semibold"
                 >
                   {predictedRole.title}
                 </h1>
