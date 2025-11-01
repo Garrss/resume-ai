@@ -7,6 +7,7 @@ import Footer from "./Footer";
 import PredictedRoles from "./PredictedRoles";
 import { DataProvider } from "../DataProvider";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { CardSpotlight } from "@/components/ui/card-spotlight";
 
 function Hero() {
   const [jobsGenerated, setJobsGenerated] = useState(false);
@@ -92,12 +93,16 @@ function Hero() {
 
 
           {/* Upload Section */}
-          <DataProvider>
-            <div className="w-full max-w-7xl sm:w-[95%] md:w-[95%] rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-sm  {/* Increased width */}
-            bg-white/60 dark:bg-neutral-900/60 
-            border border-neutral-200 dark:border-neutral-700 mx-4">
+         <DataProvider>
+            <CardSpotlight 
+              className="w-full max-w-7xl sm:w-[80%] md:w-[80%] p-6 sm:p-8 shadow-xl backdrop-blur-sm
+                bg-white/60 dark:bg-neutral-900/60 
+                border border-neutral-200 dark:border-neutral-700 mx-4"
+              color="rgba(59, 130, 246, 0.15)"  // Increased opacity and adjusted blue color
+              radius={400}
+            >
               <UploadCV onJobsGenerated={handleJobsGenerated} />
-            </div>
+            </CardSpotlight>
 
             <AnimatePresence>
               {(jobsGenerated || isLoadingJobs) && (

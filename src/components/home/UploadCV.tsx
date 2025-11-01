@@ -431,14 +431,6 @@ export default function UploadCV({ onJobsGenerated }: UploadCVProps) {
     )}
   </AnimatePresence>
       </div>
-
-      
-      {/* Security Note */}
-      <div className="mt-4 text-center">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Your files are securely processed and never stored
-        </p>
-      </div>
     </div>
   );
 }
