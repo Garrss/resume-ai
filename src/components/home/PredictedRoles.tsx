@@ -40,21 +40,24 @@ interface FeedbackData {
 
 function PredictedRoles() {
   const { data } = useContext(DataContext);
+
+      console.log(data);
+
+    const predictedRole = {
+    title: data.role,
+  };
   
-  // Handle potential undefined or invalid data
   if (!data?.feedback) {
     return <div>No feedback data available</div>;
   }
 
-  // Clean and parse the feedback data
   let feedback: FeedbackData;
   try {
     if (typeof data.feedback === 'string') {
-      // Remove any potential backticks and clean the string
       const cleanJson = data.feedback
-        .replace(/^```json\s*/, '')  // Remove starting ```json
-        .replace(/```$/, '')         // Remove ending ```
-        .trim();                     // Remove extra whitespace
+        .replace(/^```json\s*/, '')
+        .replace(/```$/, '')
+        .trim();
       feedback = JSON.parse(cleanJson);
     } else {
       feedback = data.feedback;
@@ -64,19 +67,16 @@ function PredictedRoles() {
     return <div>Error processing feedback data</div>;
   }
 
-  // Validate the parsed data has the required structure
-  if (!feedback?.overall_assessment || !feedback?.detailed_improvements || 
+  if (!feedback?.overall_assessment || !feedback?.detailed_improvements ||
       !feedback?.skill_evaluation || !feedback?.summary_of_readiness) {
     return <div>Invalid feedback data structure</div>;
   }
 
-  // Transform skill evaluation data for the bar chart
   const skillChartData = Object.entries(feedback.skill_evaluation).map(([skill, score]) => ({
     skill: skill.replace(/_/g, ' '),
     score: score
   }));
 
-  // Chart configuration
   const chartConfig = {
     score: {
       label: "Score",
@@ -91,10 +91,24 @@ function PredictedRoles() {
     <div className="w-full max-w-7xl mx-auto px-6 py-10">
       <div className="relative overflow-hidden rounded-xl bg-white dark:bg-neutral-900 shadow-md border border-neutral-200 dark:border-neutral-800">
         {/* Header Section */}
-        <div className="border-b border-neutral-200 dark:border-neutral-800 bg-gradient-to-r from-neutral-100 to-white dark:from-neutral-800/50 dark:to-neutral-900 p-8">
-          <h2 className="text-2xl font-bold text-neutral-800 dark:text-white">Feedback Analysis</h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">Comprehensive CV analysis and recommendations</p>
-        </div>
+        <div className="border-b border-neutral-200 dark:border-neutral-800 bg-gradient-to-r from-neutral-100 to-white dark:from-neutral-800/50 dark:to-neutral-900 p-8 flex items-center justify-center text-center">
+            {predictedRole?.title && (
+              <div className="max-w-4xl mx-auto">
+                <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium
+                  bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
+                  Predicted Role
+                </span>
+                <h1
+                  className="mt-3 text-5xl md:text-6xl font-bold tracking-tight
+                  bg-gradient-to-r from-white-600 to-white dark:from-white dark:to-white
+                  bg-clip-text text-transparent break-words"
+                >
+                  {predictedRole.title}
+                </h1>
+              </div>
+            )}
+          </div>
+
 
         <div className="p-8 space-y-10">
           {/* Overall Assessment */}
