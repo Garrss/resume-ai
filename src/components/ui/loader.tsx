@@ -411,7 +411,10 @@ export function TextShimmerLoader({
   return (
     <div
       className={cn(
-        "bg-[linear-gradient(to_right,var(--muted-foreground)_40%,var(--foreground)_60%,var(--muted-foreground)_80%)]",
+        // Light mode gradient
+        "bg-[linear-gradient(to_right,#00000080_40%,#000000_60%,#00000080_80%)]",
+        // Dark mode gradient
+        "dark:bg-[linear-gradient(to_right,#ffffff80_40%,#ffffff_60%,#ffffff80_80%)]",
         "bg-size-[200%_auto] bg-clip-text font-medium text-transparent",
         "animate-[shimmer_4s_infinite_linear]",
         textSizes[size],
